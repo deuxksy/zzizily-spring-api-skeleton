@@ -7,4 +7,4 @@ RUN cd ./temp && ./gradlew bootJar
 RUN cp ./temp/build/libs/*.jar ./app.jar
 RUN rm -rf ./temp
 ENTRYPOINT ["java", "-jar", "./app.jar"]
-EXPOSE 8888
+EXPOSE 8080
