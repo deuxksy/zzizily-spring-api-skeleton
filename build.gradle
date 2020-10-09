@@ -1,0 +1,92 @@
+plugins {
+  id 'java'
+  id 'application'
+  id "idea"
+  id 'org.springframework.boot' version '2.3.4.RELEASE'
+  id 'io.spring.dependency-management' version '1.0.10.RELEASE'
+  id "com.ewerk.gradle.plugins.querydsl" version "1.0.10"
+}
+
+group = 'com.zzizily'
+version = '0.0.1-SNAPSHOT'
+
+sourceCompatibility = JavaVersion.VERSION_11
+targetCompatibility = JavaVersion.VERSION_11
+
+repositories {
+  mavenCentral()
+  jcenter()
+}
+
+ext {
+  set('springCloudVersion', "Hoxton.SR8")
+}
+
+wrapper {
+  gradleVersion = gradleVersion
+  distributionType = Wrapper.DistributionType.BIN
+}
+
+//querydsl 추가 시작
+def querydslDir = "$buildDir/generated/querydsl"
+
+querydsl {
+  jpa = true
+  querydslSourcesDir = querydslDir
+}
+
+sourceSets {
+  main.java.srcDir querydslDir
+}
+
+configurations {
+  querydsl.extendsFrom compileClasspath
+}
+
+compileQuerydsl {
+  options.annotationProcessorPath = configurations.querydsl
+}
+
+dependencies {
+  // Spring Boot
+  implementation "org.springframework.boot:spring-boot-starter-web"
+  implementation "org.springframework.boot:spring-boot-devtools"
+  implementation "org.springframework.boot:spring-boot-starter-data-jpa"
+  implementation "org.springframework.boot:spring-boot-starter-hateoas"
+
+  // DB
+  implementation "com.zaxxer:HikariCP" // connection pool
+  implementation "org.flywaydb:flyway-core" //db 자동화
+  implementation "com.h2database:h2" // 메모리 db 사용
+  implementation "org.bgee.log4jdbc-log4j2:log4jdbc-log4j2-jdbc4.1:${log4Jdbc}"
+  implementation "com.querydsl:querydsl-jpa"
+  annotationProcessor "com.querydsl:querydsl-apt"
+
+  // web enable
+  compileOnly "javax.servlet:jstl"
+  compileOnly "javax.servlet:javax.servlet-api"
+
+  // lombok
+  compileOnly "org.projectlombok:lombok"
+  annotationProcessor "org.projectlombok:lombok"
+
+  implementation "org.modelmapper:modelmapper:2.3.8"
+
+  testImplementation('org.springframework.boot:spring-boot-starter-test') {
+    exclude group: 'org.junit.vintage', module: 'junit-vintage-engine'
+  }
+  testRuntimeOnly "com.h2database:h2"
+  testCompileOnly "org.projectlombok:lombok"
+  testAnnotationProcessor "org.projectlombok:lombok"
+}
+
+dependencyManagement {
+  imports {
+    mavenBom "org.springframework.cloud:spring-cloud-dependencies:${springCloudVersion}"
+  }
+}
+
+test {
+  //enabled = false //false 선언 하면 test 무시 하고 넘어감
+  useJUnitPlatform()
+}
